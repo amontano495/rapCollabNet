@@ -107,7 +107,7 @@ collabFile.close()
 
 errorFile.writelines(errorList)
 errorFile.close()
-
+'''
 msg = MIMEMultipart('alternative')
 msg['Subject'] = 'Ding!'
 msg['From'] = 'adamsocialnetworkproject@gmail.com'
@@ -118,11 +118,9 @@ msg.attach(MIMEText(body,'plain'))
 s = smtplib.SMTP('smtp.gmail.com',587)
 s.ehlo()
 s.starttls()
-s.login('adamsocialnetworkproject@gmail.com','goRY72QcsDZE')
 s.sendmail('adamsocialnetworkproject@gmail.com', ['amontano495@gmail.com'], msg.as_string())
 s.quit()
 
-'''
 def collabFinder(artistName):
     allArtists = list()
     nonRappers = list()
