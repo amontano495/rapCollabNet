@@ -44,6 +44,8 @@ def getTracks(albumID,spotipyInstance):
 def collabFinder(artistName,spotipyInstance,allRappers):
     results = sp.search(q=artistName,type='artist')
     artistID = results['artists']['items'][0]['uri'].split(':')[2]
+
+    
     collaborators = list()
 
     print 'Mining arist: ',artistName,'\tid:\t',artistID
@@ -52,26 +54,29 @@ def collabFinder(artistName,spotipyInstance,allRappers):
         tracks = getTracks(album['id'],spotipyInstance)
 
         for track in tracks:
-            artists = track['artists']
+            artists = list()
+            trackPop = track['popularity']
+
+            for i in range(len(track['artists'])):
+                artists.append(track['artists'][i]['name'])
+
             if artistName in artists or artistName in track['name']:
-                #print 'artist is on THIS track!'
-                #print 'track: ',track['name']
-                #print 'artists: ',artists
+                artists[:] = [x for x in artists if x != artistName]
+
                 for artist in artists:
                     for rapperName in allRappers:
-                        if artist['name'] in rapperName and artist['name'] != artistName:
-                            collaborators.append(artist['name'].encode('utf-8'))
-                            #print artist['name'].encode('utf-8')
+                        if artist == rapperName:
 
-                if 'feat' in track['name']:
-                    for rapperName in allRappers:
-                        if rapperName in track['name'] and rapperName != artistName:
-                            #print rapperName
-                            collaborators.append(rapperName)
+                            collaborators.append(str(artist.encode('utf-8') + ',' + str(trackPop)))
 
     collaborators = list(set(collaborators))
     return collaborators
 
+def getPop(artistName,spotipyInstance):
+    results = sp.search(q=artistName,type='artist')
+    artistID = results['artists']['items'][0]['uri'].split(':')[2]
+    artistObj = spotipyInstance.artist(artistID)
+    return artistObj['followers']['total']
 
 
 
@@ -88,8 +93,10 @@ rapperListFile.close()
 
 #print collabFinder('Higher Brothers',sp,allRappers)
 edgeList = list()
+nodeList = list()
 errorList= list()
 
+nodeFile = open('node_list', 'w')
 collabFile = open('edge_list','w')
 errorFile = open('error_list','w')
 
@@ -98,6 +105,9 @@ for rapper in allRappers:
         collabs = collabFinder(rapper,sp,allRappers)
         for entry in collabs:
             edgeList.append(str(rapper + ',' + entry + '\n'))
+
+        nodeList.append(str(rapper + ',' + getPop(rapper,sp) + str(len(collabs))))
+
     except Exception, e:
         errorList.append(str(rapper+'\n'))
         continue
@@ -107,7 +117,10 @@ collabFile.close()
 
 errorFile.writelines(errorList)
 errorFile.close()
-'''
+
+nodeFile.writelines(nodeList)
+nodeFile.close()
+
 msg = MIMEMultipart('alternative')
 msg['Subject'] = 'Ding!'
 msg['From'] = 'adamsocialnetworkproject@gmail.com'
@@ -121,6 +134,7 @@ s.starttls()
 s.sendmail('adamsocialnetworkproject@gmail.com', ['amontano495@gmail.com'], msg.as_string())
 s.quit()
 
+'''
 def collabFinder(artistName):
     allArtists = list()
     nonRappers = list()
